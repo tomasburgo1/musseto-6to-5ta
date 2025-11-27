@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Página Principal</title>
+</head>
+<body>
+
+  <h2>Bienvenido</h2>
+
+  <button onclick="cerrarSesion()">Cerrar sesión</button>
+
+  
+  <h3>Juego Snake</h3>
+      <canvas id="snakeCanvas" width="400" height="400"></canvas>
+  <h3>Datos e imagen</h3>
+
+  <div class="card">
+    <img src="https://placekitten.com/200/200" alt="gatito">
+    <p id="dato">Cargando dato</p>
+  </div>
+
+  <script>
+
+    if (localStorage.getItem("logueado") !== "true") {
+      window.location.href = "inicio.html";
+    }
+
+    
+    
+    fetch("https://api.chucknorris.io/jokes/random")
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("dato").textContent = data.value;
+      });
+
+    function cerrarSesion() {
+      localStorage.setItem("logueado", "false");
+      window.location.href = "inicio.html";
+    }
+
+    const canvas = document.getElementById("snakeCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const tam = 20; 
+    let snake = [{ x: 200, y: 200 }];
+    let dx = tam;
+    let dy = 0;
+    let comida = generarComida();
+
+    document.addEventListener("keydown", mover);
+
+    function mover(e) {
+      if (e.key === "ArrowUp" && dy === 0) { dx = 0; dy = -tam; }
+      if (e.key === "ArrowDown" && dy === 0) { dx = 0; dy = tam; }
+      if (e.key === "ArrowLeft" && dx === 0) { dx = -tam; dy = 0; }
+      if (e.key === "ArrowRight" && dx === 0) { dx = tam; dy = 0; }
+    }
+
+    function generarComida() {
+      return {
+        x: Math.floor(Math.random() * (canvas.width / tam)) * tam,
+        y: Math.floor(Math.random() * (canvas.height / tam)) * tam
+      };
+    }
+
+    function actualizar() {
+      let cabeza = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      
+      if (
+        cabeza.x < 0 || cabeza.x >= canvas.width ||
+        cabeza.y < 0 || cabeza.y >= canvas.height
+      ) {
+        alert("Perdiste pa :(");
+        document.location.reload();
+      }
+
+      snake.unshift(cabeza);
+
+    
+      if (cabeza.x === comida.x && cabeza.y === comida.y) {
+        comida = generarComida();
+      } else {
+        snake.pop();
+      }
+
+      dibujar();
+    }
+
+    function dibujar() {
+      ctx.fillStyle = "#222";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#4CAF50";
+      snake.forEach(parte => {
+        ctx.fillRect(parte.x, parte.y, tam, tam);
+      });
+
+    
+      ctx.fillStyle = "red";
+      ctx.fillRect(comida.x, comida.y, tam, tam);
+    }
+
+    setInterval(actualizar, 120);
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #ececec;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2, h3 {
+      color: #333;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    #snakeCanvas {
+      background: #222;
+      margin-top: 20px;
+      border: 4px solid #4CAF50;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      width: 300px;
+      margin: 20px auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    img {
+      width: 200px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+  </style>
+
+</body>
+</html>
